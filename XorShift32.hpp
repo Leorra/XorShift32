@@ -25,9 +25,7 @@ public:
 		return std::numeric_limits<result_type>::max();
 	}
 
-	result_type operator()() noexcept {
-		return xorShift32();
-	}
+	result_type operator()() noexcept { return xorShift32(); }
 
 	explicit XorShift32(std::uint32_t seed = kDefaultSeed_) noexcept { setSeed(seed); }
 
