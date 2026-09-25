@@ -38,7 +38,8 @@ public:
 		std::uint32_t current = rng_state_.load(std::memory_order_relaxed);
 		std::uint32_t next = 0;
 
-		do { std::uint32_t x = current; x ^= x << 13; x ^= x >> 17; x ^= x << 5; next = x; } while (!rng_state_.compare_exchange_weak(
+		do { std::uint32_t x = current; x ^= x << 13; x ^= x >> 17; x ^= x << 5; next = x; }
+		while (!rng_state_.compare_exchange_weak(
 			current, next, std::memory_order_relaxed, std::memory_order_relaxed
 		)); return next;
 	}
