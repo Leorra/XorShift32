@@ -1,7 +1,11 @@
-﻿// ====================================================================
-// [+] Lock-free thread-safe XorShift32 bit random number generator [+] 
-// https://github.com/Leorra/
-// ====================================================================
+﻿/*
+====================================================================
+[+] Lock-free thread-safe XorShift32 bit random number generator [+] 
+[+] C++ 23 Code Standard                                         [+]
+[+] https://github.com/Leorra/                                   [+]
+====================================================================
+*/
+
 #pragma once
 
 #include <atomic>
