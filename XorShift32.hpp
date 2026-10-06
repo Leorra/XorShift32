@@ -33,7 +33,7 @@ public:
 
 	explicit XorShift32(std::uint32_t seed = kDefaultSeed_) noexcept { setSeed(seed); }
 
-	void setSeed(std::uint32_t seed) noexcept {
+	void setSeed(const std::uint32_t seed) noexcept {
 		rng_state_.store(seed == 0U ? kDefaultSeed_ : seed, std::memory_order_relaxed);
 	}
 
@@ -55,7 +55,7 @@ public:
 	}
 
 	// Fast biased variant for hot loops
-	[[nodiscard]] std::uint32_t getRandomInt(std::uint32_t n) noexcept {
+	[[nodiscard]] std::uint32_t getRandomInt(const std::uint32_t n) noexcept {
 		if (n <= 1) [[unlikely]] { return 0; }
 		const std::uint64_t multi = static_cast<std::uint64_t>(xorShift32()) * n;
 		return static_cast<std::uint32_t>(multi >> 32);
@@ -63,7 +63,7 @@ public:
 
 	// Unbiased integer random number generator in the range [0, n)
 	// Lemire's reduction with rejection sampling for non-power-of-two bounds
-	[[nodiscard]] std::uint32_t getRandomIntUnbiased(std::uint32_t n) noexcept {
+	[[nodiscard]] std::uint32_t getRandomIntUnbiased(const std::uint32_t n) noexcept {
 		if (n <= 1) [[unlikely]] { return 0; }
 		std::uint64_t multi = static_cast<std::uint64_t>(xorShift32()) * n;
 		std::uint32_t low = static_cast<std::uint32_t>(multi);
