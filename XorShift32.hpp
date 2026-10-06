@@ -82,7 +82,6 @@ public:
 				result = static_cast<std::uint32_t>(m / R);
 				low = static_cast<std::uint32_t>(m % R);
 			}
-		}
-		return result;
+		} return result;
 	}
 };
