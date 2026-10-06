@@ -1,6 +1,6 @@
 ﻿/*
 ====================================================================
-[+] Lock-free thread-safe XorShift32 bit random number generator [+] 
+[+] Lock-free thread-safe XorShift32 bit random number generator [+]
 [+] C++ 23 Code Standard                                         [+]
 [+] https://github.com/Leorra/                                   [+]
 ====================================================================
@@ -22,7 +22,7 @@ public:
 	using result_type = std::uint32_t;
 
 	[[nodiscard]] static constexpr result_type min() noexcept {
-		return std::numeric_limits<result_type>::min();
+		return 1U;
 	}
 
 	[[nodiscard]] static constexpr result_type max() noexcept {
@@ -42,37 +42,44 @@ public:
 		std::uint32_t current = rng_state_.load(std::memory_order_relaxed);
 		std::uint32_t next = 0;
 
-		do { std::uint32_t x = current; x ^= x << 13; x ^= x >> 17; x ^= x << 5; next = x; }
-		while (!rng_state_.compare_exchange_weak(
+		do { std::uint32_t x = current; x ^= x << 13; x ^= x >> 17; x ^= x << 5; next = x; } while (!rng_state_.compare_exchange_weak(
 			current, next, std::memory_order_relaxed, std::memory_order_relaxed
 		)); return next;
 	}
 
 	// Floating-point random number generator in the range [0.0, 1.0)
 	[[nodiscard]] float getRandomFloat() noexcept {
-		static constexpr float kInvMax = 1.0f / 16777216.0f;
-		return static_cast<float>(xorShift32() >> 8) * kInvMax;
+		static constexpr float kInvMax = 1.0f / 4294967296.0f;
+		return static_cast<float>(xorShift32() - 1U) * kInvMax;
 	}
 
 	// Fast biased variant for hot loops
 	[[nodiscard]] std::uint32_t getRandomInt(const std::uint32_t n) noexcept {
 		if (n <= 1) [[unlikely]] { return 0; }
-		const std::uint64_t multi = static_cast<std::uint64_t>(xorShift32()) * n;
+		const std::uint64_t multi = static_cast<std::uint64_t>(xorShift32() - 1U) * n;
 		return static_cast<std::uint32_t>(multi >> 32);
 	}
 
 	// Unbiased integer random number generator in the range [0, n)
-	// Lemire's reduction with rejection sampling for non-power-of-two bounds
+	// Lemire's reduction with range size 2^32 - 1
 	[[nodiscard]] std::uint32_t getRandomIntUnbiased(const std::uint32_t n) noexcept {
 		if (n <= 1) [[unlikely]] { return 0; }
-		std::uint64_t multi = static_cast<std::uint64_t>(xorShift32()) * n;
-		std::uint32_t low = static_cast<std::uint32_t>(multi);
+		constexpr std::uint64_t R = 0xFFFFFFFFULL; // 2^32 - 1
+
+		std::uint64_t x = static_cast<std::uint64_t>(xorShift32()) - 1ULL;
+		std::uint64_t m = x * n;
+		std::uint32_t result = static_cast<std::uint32_t>(m / R);
+		std::uint32_t low = static_cast<std::uint32_t>(m % R);
+
 		if (low < n) {
-			const std::uint32_t threshold = (0U - n) % n;
+			const std::uint32_t threshold = static_cast<std::uint32_t>(R % n);
 			while (low < threshold) {
-				multi = static_cast<std::uint64_t>(xorShift32()) * n;
-				low = static_cast<std::uint32_t>(multi);
+				x = static_cast<std::uint64_t>(xorShift32()) - 1ULL;
+				m = x * n;
+				result = static_cast<std::uint32_t>(m / R);
+				low = static_cast<std::uint32_t>(m % R);
 			}
-		} return static_cast<std::uint32_t>(multi >> 32);
+		}
+		return result;
 	}
 };
