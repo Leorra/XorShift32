@@ -17,6 +17,8 @@ private:
 	static constexpr std::uint32_t kDefaultSeed_ { 1337U };
 	std::atomic<std::uint32_t> rng_state_ { kDefaultSeed_ };
 
+	static_assert(std::atomic<std::uint32_t>::is_always_lock_free);
+
 public:
 	// URBG Interface Requirements
 	using result_type = std::uint32_t;
@@ -33,6 +35,7 @@ public:
 
 	explicit XorShift32(std::uint32_t seed = kDefaultSeed_) noexcept { setSeed(seed); }
 
+	// Maps seed 0 to default seed to prevent zero state
 	void setSeed(const std::uint32_t seed) noexcept {
 		rng_state_.store(seed == 0U ? kDefaultSeed_ : seed, std::memory_order_relaxed);
 	}
@@ -49,11 +52,11 @@ public:
 
 	// Floating-point random number generator in the range [0.0, 1.0)
 	[[nodiscard]] float getRandomFloat() noexcept {
-		static constexpr float kInvMax = 1.0f / 4294967296.0f;
-		return static_cast<float>(xorShift32() - 1U) * kInvMax;
+		static constexpr float kInv2p24 = 1.0f / 16777216.0f;
+		return static_cast<float>(xorShift32() >> 8) * kInv2p24;
 	}
 
-	// Fast biased variant for hot loops
+	// Fast biased variant for hot loops (not suitable for strict statistical work)
 	[[nodiscard]] std::uint32_t getRandomInt(const std::uint32_t n) noexcept {
 		if (n <= 1) [[unlikely]] { return 0; }
 		const std::uint64_t multi = static_cast<std::uint64_t>(xorShift32() - 1U) * n;
