@@ -62,7 +62,7 @@ public:
 	// ---------------------------------------------------------------
 	explicit XorShift32(const std::uint32_t seed = kDefaultSeed_) noexcept { setSeed(seed); }
 
-	XorShift32(const XorShift32&)            = delete;
+	XorShift32(const XorShift32&) = delete;
 	XorShift32& operator=(const XorShift32&) = delete;
 
 	// Replaces the state. Seed 0 is the sole absorbing state of XorShift
@@ -83,7 +83,7 @@ public:
 	// other memory is published through it.
 	[[nodiscard]] std::uint32_t xorShift32() noexcept {
 		std::uint32_t current = rng_state_.load(std::memory_order_relaxed);
-		std::uint32_t next    = 0U;
+		std::uint32_t next = 0U;
 
 		do {
 			// On CAS failure, 'current' is refreshed with the latest state
@@ -136,18 +136,18 @@ public:
 		if (n <= 1U) { return 0U; }
 		constexpr std::uint64_t R = 0xFFFFFFFFULL; // 2^32 - 1
 
-		std::uint64_t x      = static_cast<std::uint64_t>(xorShift32()) - 1ULL;
-		std::uint64_t m      = x * n;
+		std::uint64_t x = static_cast<std::uint64_t>(xorShift32()) - 1ULL;
+		std::uint64_t m = x * n;
 		std::uint32_t result = static_cast<std::uint32_t>(m / R);
-		std::uint32_t low    = static_cast<std::uint32_t>(m % R);
+		std::uint32_t low = static_cast<std::uint32_t>(m % R);
 
 		if (low < n) {
 			const std::uint32_t threshold = static_cast<std::uint32_t>(R % n);
 			while (low < threshold) {
-				x      = static_cast<std::uint64_t>(xorShift32()) - 1ULL;
-				m      = x * n;
+				x = static_cast<std::uint64_t>(xorShift32()) - 1ULL;
+				m = x * n;
 				result = static_cast<std::uint32_t>(m / R);
-				low    = static_cast<std::uint32_t>(m % R);
+				low = static_cast<std::uint32_t>(m % R);
 			}
 		}
 		return result;
